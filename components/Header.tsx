@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 const NavLinks = () => (
   <>
-    <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">A Priorizzi</a>
-    <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">Soluções</a>
-    <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">Cursos</a>
-    <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">Clientes</a>
-    <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">Blog</a>
-    <a href="#" className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-all">Fale Conosco</a>
+    <Link href="/about" className="text-gray-600 hover:text-emerald-600 transition-colors">A Priorizzi</Link>
+    <Link href="/solutions" className="text-gray-600 hover:text-emerald-600 transition-colors">Soluções</Link>
+    <Link href="/courses" className="text-gray-600 hover:text-emerald-600 transition-colors">Cursos</Link>
+    <Link href="/clients" className="text-gray-600 hover:text-emerald-600 transition-colors">Clientes</Link>
+    <Link href="/blog" className="text-gray-600 hover:text-emerald-600 transition-colors">Blog</Link>
+    <Link href="/contact" className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-all">Fale Conosco</Link>
   </>
 );
 
@@ -18,10 +19,10 @@ const Header: React.FC = () => {
     <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <div className="flex flex-col">
+          <Link href="/" className="flex flex-col">
             <h1 className="text-2xl font-bold text-emerald-700">PRIORIZZI®</h1>
             <p className="text-xs text-gray-500 tracking-tight">A Saúde Financeira de Sua Empresa</p>
-          </div>
+          </Link>
 
           <nav className="hidden lg:flex items-center space-x-8">
             <NavLinks />

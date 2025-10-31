@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Link from 'next/link';
 
 const Footer: React.FC = () => {
   return (
@@ -19,11 +20,11 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">Links Rápidos</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">A Priorizzi</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Soluções</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Cursos</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Clientes</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Blog</a></li>
+              <li><Link href="/about" className="hover:text-emerald-400 transition-colors">A Priorizzi</Link></li>
+              <li><Link href="/solutions" className="hover:text-emerald-400 transition-colors">Soluções</Link></li>
+              <li><Link href="/courses" className="hover:text-emerald-400 transition-colors">Cursos</Link></li>
+              <li><Link href="/clients" className="hover:text-emerald-400 transition-colors">Clientes</Link></li>
+              <li><Link href="/blog" className="hover:text-emerald-400 transition-colors">Blog</Link></li>
             </ul>
           </div>
 
@@ -34,9 +35,9 @@ const Footer: React.FC = () => {
               <li><a href="mailto:contato@priorizzi.com.br" className="hover:text-emerald-400 transition-colors">contato@priorizzi.com.br</a></li>
               <li><a href="tel:+5511999999999" className="hover:text-emerald-400 transition-colors">+55 (11) 99999-9999</a></li>
               <li className="pt-2">
-                <a href="#" className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
+                <Link href="/contact" className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
                   Fale Conosco →
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

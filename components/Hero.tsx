@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Link from 'next/link';
 
 const PlayIcon: React.FC = () => (
     <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -10,27 +11,38 @@ const PlayIcon: React.FC = () => (
 const Hero: React.FC = () => {
   return (
     <section className="bg-emerald-50/50">
-      <div className="container mx-auto px-6 py-20 lg:py-32 text-center">
-        <h2 className="text-lg font-semibold text-emerald-600 uppercase tracking-wider">
-          Priorizzi Healthcare Financial Management
-        </h2>
-        <p className="mt-4 text-sm font-medium bg-emerald-100 text-emerald-800 inline-block px-4 py-1 rounded-full">
-          +500 EMPRESAS DE SAÚDE JÁ MULTIPLICARAM SEUS LUCROS
-        </p>
-        <h1 className="mt-6 text-4xl lg:text-6xl font-extrabold text-gray-900 max-w-4xl mx-auto leading-tight">
-          Pare de perder dinheiro: descubra onde estão os vazamentos financeiros da sua empresa de saúde
-        </h1>
-        <p className="mt-8 text-lg text-gray-600 max-w-2xl mx-auto">
-          Você cuida dos pacientes, nós garantimos que sua empresa seja lucrativa e sustentável. Resultados comprovados em 90 dias ou menos.
-        </p>
-        <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
-          <a href="#" className="w-full sm:w-auto bg-emerald-600 text-white font-semibold px-8 py-4 rounded-lg shadow-lg hover:bg-emerald-700 transform hover:scale-105 transition-all duration-300">
-            Quero Multiplicar Meus Lucros Agora
-          </a>
-          <a href="#" className="w-full sm:w-auto flex items-center justify-center bg-white text-emerald-600 font-semibold px-8 py-4 rounded-lg border border-emerald-200 hover:bg-emerald-50 transform hover:scale-105 transition-all duration-300">
-            <PlayIcon />
-            Ver Como Funciona (2 min)
-          </a>
+      <div className="container mx-auto px-6 py-20 lg:py-24">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <h2 className="text-lg font-semibold text-emerald-600 uppercase tracking-wider">
+              Priorizzi Healthcare Financial Management
+            </h2>
+            <p className="mt-4 text-sm font-medium bg-emerald-100 text-emerald-800 inline-block px-4 py-1 rounded-full">
+              +500 EMPRESas DE SAÚDE JÁ MULTIPLICARAM SEUS LUCROS
+            </p>
+            <h1 className="mt-6 text-4xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
+              Pare de perder dinheiro: descubra onde estão os vazamentos financeiros da sua empresa de saúde
+            </h1>
+            <p className="mt-8 text-lg text-gray-600">
+              Você cuida dos pacientes, nós garantimos que sua empresa seja lucrativa e sustentável. Resultados comprovados em 90 dias ou menos.
+            </p>
+            <div className="mt-12 flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4">
+              <Link href="/contact" className="w-full sm:w-auto bg-emerald-600 text-white font-semibold px-8 py-4 rounded-lg shadow-lg hover:bg-emerald-700 transform hover:scale-105 transition-all duration-300 text-center">
+                Quero Multiplicar Meus Lucros Agora
+              </Link>
+              <Link href="/how-it-works" className="w-full sm:w-auto flex items-center justify-center bg-white text-emerald-600 font-semibold px-8 py-4 rounded-lg border border-emerald-200 hover:bg-emerald-50 transform hover:scale-105 transition-all duration-300">
+                <PlayIcon />
+                Ver Como Funciona (2 min)
+              </Link>
+            </div>
+          </div>
+          <div className="mt-12 lg:mt-0">
+            <img 
+              src="https://images.unsplash.com/photo-1576091160550-2173dba9996a?auto=format&fit=crop&q=80&w=1200" 
+              alt="Profissional da saúde analisando dados financeiros em um laptop" 
+              className="rounded-xl shadow-2xl w-full h-auto object-cover"
+            />
+          </div>
         </div>
       </div>
     </section>

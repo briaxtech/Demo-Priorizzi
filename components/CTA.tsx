@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 const CTA: React.FC = () => {
   return (
@@ -11,12 +12,12 @@ const CTA: React.FC = () => {
           Não deixe mais dinheiro na mesa. Agende seu check-up financeiro gratuito hoje mesmo e descubra o potencial de lucro escondido em sua empresa.
         </p>
         <div className="mt-10">
-          <a 
-            href="#" 
+          <Link 
+            href="/contact" 
             className="inline-block bg-white text-emerald-600 font-semibold px-8 py-4 rounded-lg shadow-lg hover:bg-emerald-50 transform hover:scale-105 transition-all duration-300"
           >
             Quero Multiplicar Meus Lucros Agora
-          </a>
+          </Link>
         </div>
       </div>
     </section>
