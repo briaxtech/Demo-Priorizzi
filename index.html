@@ -15,10 +15,12 @@
         font-family: 'Poppins', sans-serif;
       }
     </style>
-<script type="importmap">
+    <!-- Corrected importmap to load a single, consistent version of React -->
+    <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/"
   }
@@ -27,7 +29,7 @@
 </head>
 <body class="bg-gray-50">
     <div id="root"></div>
-    <!-- Added data-presets to correctly transpile TypeScript and React -->
+    <!-- This script tag correctly loads and transpiles the React entry point -->
     <script type="text/babel" data-presets="react,typescript" data-type="module" src="/index.tsx"></script>
     <elevenlabs-convai agent-id="agent_9401k8tstz6ff56rppbx33tqe5ac"></elevenlabs-convai>
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
