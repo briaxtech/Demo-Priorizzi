@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 const NavLinks = () => (
@@ -29,7 +28,13 @@ const Header: React.FC = () => {
           </nav>
           
           <div className="lg:hidden">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700 focus:outline-none">
+            <button 
+              onClick={() => setIsOpen(!isOpen)} 
+              className="text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 rounded"
+              aria-controls="mobile-menu"
+              aria-expanded={isOpen}
+            >
+              <span className="sr-only">Abrir menu principal</span>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path>
               </svg>
@@ -38,7 +43,7 @@ const Header: React.FC = () => {
         </div>
 
         {isOpen && (
-          <div className="lg:hidden mt-4">
+          <div className="lg:hidden mt-4" id="mobile-menu">
             <nav className="flex flex-col items-center space-y-4">
               <NavLinks />
             </nav>
