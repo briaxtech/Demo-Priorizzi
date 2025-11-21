@@ -1,191 +1,317 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI, Content } from "@google/genai";
+import { GoogleGenAI, LiveServerMessage, Modality } from "@google/genai";
 import { useLanguage } from '../context/LanguageContext';
 
-interface Message {
-  id: string;
-  role: 'user' | 'model';
-  text: string;
-  suggestions?: string[];
-}
+const SYSTEM_INSTRUCTION = `You are Alex, the Senior Virtual Consultant at Many BrIAx (Healthcare Financial Management).
 
-const SYSTEM_INSTRUCTION = `You are Alex, the Senior Virtual Consultant at Priorizzi.
-You are not just an AI; you are a dedicated financial partner for healthcare professionals.
+**CORE BEHAVIOR:**
+- You are a VOICE agent. Keep responses CONCISE, WARM, and SPOKEN-STYLE (short sentences).
+- **DETECT** the user's language from their audio and reply in the SAME language (Portuguese, English, or Spanish).
+- Do NOT list options with bullet points. Speak naturally.
 
-**LANGUAGE PROTOCOL:**
-- **DETECT** the language of the user's message immediately.
-- **RESPOND** strictly in that same language (Portuguese, English, or Spanish).
-- **DEFAULT** to Portuguese if the user initiates with "Olá" or ambiguous text.
+**KNOWLEDGE:**
+- Services: Free Financial Check-up, Consulting, Outsourced CFO.
+- Goal: Help clinics multiply profits in 90 days.
+- Contact: contato@manybriax.com.br
 
-**YOUR IDENTITY:**
-- Name: Alex.
-- Tone: Professional, warm, empathetic, and confident.
-- Style: Human-like conversationalist. Avoid robotic lists unless necessary. Use natural transitions.
-
-**COMPANY KNOWLEDGE (Priorizzi):**
-- **Mission:** Ensuring the financial health of healthcare businesses (clinics, hospitals, dental practices).
-- **Value Proposition:** "You take care of patients; we ensure your business is profitable and sustainable."
-- **Key Promise:** Proven results in 90 days or less.
-- **Services:**
-  1. **Free Financial Check-up:** A no-cost diagnosis to find financial "leaks" (wasted money).
-  2. **Armored Strategic Consulting:** Systems to eliminate waste and maximize profit.
-  3. **Outsourced CFO (Health+):** Elite financial direction without the high fixed cost of an internal executive.
-
-**CONVERSATION GOALS:**
-1. **Empathize:** Acknowledge the difficulties of managing a clinic/hospital.
-2. **Educate:** Briefly explain why financial health is vital.
-3. **Convert:** Gently steer the conversation towards scheduling the **Free Financial Check-up**.
-
-**CONTACT INFO (Only provide if asked):**
-- Email: contato@priorizzi.com.br
-- Phone: +55 (11) 99999-9999
-
-**IMPORTANT:**
-- Keep responses concise (max 3-4 sentences per turn usually).
-- Do not make up numbers.
-- If the user speaks English, become an English-speaking consultant.
-- If the user speaks Spanish, become a Spanish-speaking consultant.
+**OBJECTIVE:**
+- Empathize with financial stress.
+- Briefly explain value.
+- Encourage scheduling the Free Check-up.
 `;
 
-const getTimeBasedGreeting = (lang: string) => {
-    const hour = new Date().getHours();
-    if (lang === 'en') {
-        if (hour < 12) return "Good morning";
-        if (hour < 18) return "Good afternoon";
-        return "Good evening";
-    } else if (lang === 'es') {
-        if (hour < 12) return "Buenos días";
-        if (hour < 18) return "Buenas tardes";
-        return "Buenas noches";
-    } else {
-        if (hour < 12) return "Bom dia";
-        if (hour < 18) return "Boa tarde";
-        return "Boa noite";
-    }
+// Audio Utils for Live API
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function floatTo16BitPCM(float32Array: Float32Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(float32Array.length * 2);
+  const view = new DataView(buffer);
+  for (let i = 0; i < float32Array.length; i++) {
+    let s = Math.max(-1, Math.min(1, float32Array[i]));
+    view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  return buffer;
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }
 
 const GeminiAgent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { language, t } = useLanguage();
-  // Initialize with a default message; useEffect will update it dynamically
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isActive, setIsActive] = useState(false);
+  const [status, setStatus] = useState<'disconnected' | 'connecting' | 'listening' | 'speaking'>('disconnected');
+  const [volume, setVolume] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  const { t } = useLanguage();
+  
+  // Audio Refs
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const inputSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const nextStartTimeRef = useRef<number>(0);
+  const sessionRef = useRef<any>(null);
+  const isMutedRef = useRef(false);
+  const audioSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Cleanup function
+  const disconnect = () => {
+    setIsActive(false);
+    setStatus('disconnected');
+    setIsMuted(false);
+    isMutedRef.current = false;
+    // Note: We don't clear error here automatically so user can see what happened
+
+    stopAllAudio();
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    if (inputSourceRef.current) {
+        inputSourceRef.current.disconnect();
+        inputSourceRef.current = null;
+    }
+    if (processorRef.current) {
+        processorRef.current.disconnect();
+        processorRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+
+    sessionRef.current = null;
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isOpen]);
-
-  // Set dynamic welcome message whenever language changes or on mount
-  useEffect(() => {
-    const timeGreeting = getTimeBasedGreeting(language);
-    
-    const initialMessage: Message = {
-      id: 'welcome',
-      role: 'model',
-      text: `${timeGreeting}! ${t.agent.welcome_intro} \n\n${t.agent.welcome_question}`,
-      suggestions: t.agent.suggestions
-    };
-    
-    setMessages([initialMessage]);
-  }, [language, t]);
-
-  const handleSendMessage = async (textInput: string = input) => {
-    if (!textInput.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: generateId(),
-      role: 'user',
-      text: textInput.trim()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      const historyContent: Content[] = messages.map(m => ({
-        role: m.role,
-        parts: [{ text: m.text }]
-      }));
-
-      const chat = ai.chats.create({
-        model: 'gemini-3-pro-preview',
-        history: historyContent,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
+  const stopAllAudio = () => {
+    audioSourcesRef.current.forEach(source => {
+        try {
+            source.stop();
+        } catch (e) {
+            // Ignore errors
         }
-      });
-
-      let fullResponseText = '';
-      const responseStream = await chat.sendMessageStream({ 
-        message: userMessage.text 
-      });
-      
-      const modelMessageId = generateId();
-      setMessages(prev => [...prev, { id: modelMessageId, role: 'model', text: '' }]);
-
-      for await (const chunk of responseStream) {
-        const text = chunk.text;
-        if (text) {
-          fullResponseText += text;
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === modelMessageId ? { ...msg, text: fullResponseText } : msg
-            )
-          );
-        }
-      }
-
-    } catch (error) {
-      console.error("Error generating response:", error);
-      setMessages(prev => [...prev, {
-        id: generateId(),
-        role: 'model',
-        text: language === 'pt' 
-          ? 'Desculpe, tive um problema de conexão. Poderia repetir?'
-          : language === 'es'
-            ? 'Lo siento, tuve un problema de conexión. ¿Podrías repetir?'
-            : 'Sorry, I had a connection issue. Could you repeat?'
-      }]);
-    } finally {
-      setIsLoading(false);
+    });
+    audioSourcesRef.current.clear();
+    
+    if (audioContextRef.current) {
+        nextStartTimeRef.current = audioContextRef.current.currentTime;
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSendMessage(input);
+  const toggleMute = () => {
+    const newState = !isMuted;
+    setIsMuted(newState);
+    isMutedRef.current = newState;
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    handleSendMessage(suggestion);
+  const startSession = async () => {
+    try {
+      setError(null);
+      setStatus('connecting');
+      setIsActive(true);
+
+      // 1. Setup Audio Context
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioContextClass({ sampleRate: 24000 });
+      audioContextRef.current = audioContext;
+      nextStartTimeRef.current = audioContext.currentTime;
+
+      // 2. Get Microphone
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: {
+        sampleRate: 16000,
+        channelCount: 1,
+        echoCancellation: true,
+        autoGainControl: true,
+        noiseSuppression: true
+      }});
+      streamRef.current = stream;
+
+      // 3. Connect to Gemini Live API
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
+      const sessionPromise = ai.live.connect({
+        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
+          },
+          systemInstruction: SYSTEM_INSTRUCTION,
+        },
+        callbacks: {
+            onopen: () => {
+                setStatus('listening');
+                console.log("Gemini Live Session Opened");
+            },
+            onmessage: async (message: LiveServerMessage) => {
+                const interrupted = message.serverContent?.interrupted;
+                if (interrupted) {
+                    console.log("Interrupted by user");
+                    stopAllAudio();
+                    setStatus('listening');
+                    return;
+                }
+
+                const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+                
+                if (base64Audio) {
+                    setStatus('speaking');
+                    
+                    const pcmData = base64ToUint8Array(base64Audio);
+                    const dataInt16 = new Int16Array(pcmData.buffer);
+                    const float32 = new Float32Array(dataInt16.length);
+                    for(let i=0; i<dataInt16.length; i++) {
+                        float32[i] = dataInt16[i] / 32768.0;
+                    }
+
+                    const audioBuffer = audioContext.createBuffer(1, float32.length, 24000);
+                    audioBuffer.getChannelData(0).set(float32);
+
+                    const source = audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(audioContext.destination);
+                    
+                    audioSourcesRef.current.add(source);
+
+                    const startTime = Math.max(nextStartTimeRef.current, audioContext.currentTime);
+                    source.start(startTime);
+                    nextStartTimeRef.current = startTime + audioBuffer.duration;
+
+                    source.onended = () => {
+                        audioSourcesRef.current.delete(source);
+                        if (audioContext.currentTime >= nextStartTimeRef.current - 0.1) {
+                            setStatus('listening');
+                        }
+                    };
+                }
+            },
+            onclose: (event) => {
+                console.log("Session closed", event);
+                disconnect();
+            },
+            onerror: (err) => {
+                console.error("Session error", err);
+                setError("Connection failed. Please check if the 'Generative Language API' is enabled for your API Key in Google Cloud Console.");
+                disconnect();
+            }
+        }
+      });
+
+      sessionRef.current = sessionPromise;
+
+      // 4. Setup Audio Input (Mic -> Gemini)
+      const inputContext = new AudioContextClass({ sampleRate: 16000 });
+      const micSource = inputContext.createMediaStreamSource(stream);
+      const processor = inputContext.createScriptProcessor(4096, 1, 1);
+      
+      processor.onaudioprocess = (e) => {
+        if (!isActive) return;
+
+        if (isMutedRef.current) {
+          setVolume(0);
+          return;
+        }
+
+        const inputData = e.inputBuffer.getChannelData(0);
+        
+        // Visualizer volume calculation
+        let sum = 0;
+        for (let i = 0; i < inputData.length; i++) {
+            sum += inputData[i] * inputData[i];
+        }
+        const rms = Math.sqrt(sum / inputData.length);
+        
+        if (status === 'listening' && rms > 0.01) {
+             setVolume(Math.min(rms * 5, 1));
+        } else if (status === 'speaking') {
+             setVolume(0.2);
+        } else if (rms <= 0.01) {
+            setVolume(0);
+        }
+
+        const pcm16 = floatTo16BitPCM(inputData);
+        const base64 = arrayBufferToBase64(pcm16);
+
+        sessionPromise.then(session => {
+            session.sendRealtimeInput({
+                media: {
+                    mimeType: 'audio/pcm;rate=16000',
+                    data: base64
+                }
+            });
+        }).catch(e => {
+            console.error("Error sending input", e);
+        });
+      };
+
+      micSource.connect(processor);
+      const gainNode = inputContext.createGain();
+      gainNode.gain.value = 0;
+      processor.connect(gainNode);
+      gainNode.connect(inputContext.destination);
+      
+      inputSourceRef.current = micSource;
+      processorRef.current = processor;
+
+    } catch (error: any) {
+      console.error("Failed to start voice session:", error);
+      setError(error.message || "Failed to start session");
+      disconnect();
+    }
   };
+
+  const toggleOpen = () => {
+    if (isOpen) {
+      setIsOpen(false);
+      disconnect();
+    } else {
+      setIsOpen(true);
+      setError(null);
+      setTimeout(() => {
+          startSession();
+      }, 300);
+    }
+  };
+
+  const retryConnection = () => {
+      disconnect();
+      startSession();
+  }
 
   return (
     <>
-      {/* LAUNCHER: Custom Card Design matching the requested image */}
+      {/* LAUNCHER */}
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-50 animate-fade-in-up">
           <div 
             className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-5 w-[300px] border border-gray-100 cursor-pointer transition-transform hover:scale-[1.02]"
-            onClick={() => setIsOpen(true)}
+            onClick={toggleOpen}
           >
             <div className="flex items-center space-x-4 mb-5">
               <div className="relative">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-md">
-                   {/* Abstract stylized logo/orb */}
                    <svg className="w-8 h-8 text-white opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                    </svg>
                 </div>
                 <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-[2.5px] border-white rounded-full"></span>
@@ -200,7 +326,7 @@ const GeminiAgent: React.FC = () => {
               className="w-full bg-black text-white py-3.5 rounded-full font-medium text-sm flex items-center justify-center space-x-2 hover:bg-gray-800 transition-colors shadow-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
               <span>{t.agent.launcher_cta}</span>
             </button>
@@ -208,25 +334,24 @@ const GeminiAgent: React.FC = () => {
         </div>
       )}
 
-      {/* OPEN CHAT WINDOW */}
+      {/* VOICE INTERFACE MODAL */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[360px] max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-2xl z-50 overflow-hidden border border-gray-100 flex flex-col max-h-[80vh] h-[600px] animate-fade-in-up font-sans">
+        <div className="fixed bottom-6 right-6 w-[360px] max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-2xl z-50 overflow-hidden border border-gray-100 flex flex-col h-[500px] animate-fade-in-up font-sans">
+          
           {/* Header */}
-          <div className="bg-white p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10">
+          <div className="bg-white p-4 flex items-center justify-between absolute top-0 left-0 right-0 z-10">
             <div className="flex items-center">
               <div className="relative mr-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white text-sm font-bold">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xs font-bold">
                   A
                 </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
               </div>
               <div>
-                <h3 className="text-gray-900 font-bold text-base">Alex</h3>
-                <p className="text-emerald-600 text-xs font-medium">Consultor Priorizzi</p>
+                <h3 className="text-gray-900 font-bold text-sm">Alex (Voice)</h3>
               </div>
             </div>
             <button 
-              onClick={() => setIsOpen(false)}
+              onClick={toggleOpen}
               className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50 transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -235,78 +360,130 @@ const GeminiAgent: React.FC = () => {
             </button>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4 chat-scrollbar">
-            <div className="text-center text-xs text-gray-400 my-4">Hoje</div>
+          {/* Visualizer / Content Area */}
+          <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50/50 to-white relative">
             
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] p-3.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed shadow-sm ${
-                    msg.role === 'user'
-                      ? 'bg-black text-white rounded-br-none' // Black user bubble to match launcher button
-                      : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
-                  }`}
-                >
-                  {msg.text}
+            {error ? (
+                <div className="px-8 text-center">
+                    <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h4 className="text-gray-900 font-semibold mb-2">Connection Failed</h4>
+                    <p className="text-sm text-gray-600 mb-6">{error}</p>
+                    <button 
+                        onClick={retryConnection}
+                        className="bg-gray-900 text-white px-6 py-2 rounded-full text-sm hover:bg-black transition-colors"
+                    >
+                        Retry
+                    </button>
                 </div>
-                
-                {/* Suggestions Chips (Only for model messages that have them) */}
-                {msg.role === 'model' && msg.suggestions && msg.suggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3 animate-fade-in">
-                    {msg.suggestions.map((suggestion, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="bg-white border border-emerald-200 text-emerald-700 text-xs px-3 py-1.5 rounded-full hover:bg-emerald-50 hover:border-emerald-300 transition-colors shadow-sm"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            ) : (
+                <>
+                    {/* Status Text */}
+                    <div className="absolute top-20 text-center w-full px-4">
+                        <p className="text-emerald-800 font-medium text-sm tracking-wide uppercase opacity-80">
+                            {status === 'connecting' && 'Connecting...'}
+                            {status === 'listening' && (isMuted ? 'Microphone Muted' : 'Listening...')}
+                            {status === 'speaking' && 'Alex Speaking...'}
+                            {status === 'disconnected' && 'Offline'}
+                        </p>
+                    </div>
 
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white p-4 rounded-2xl rounded-bl-none shadow-sm border border-gray-200">
-                  <div className="flex space-x-1.5">
-                    <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                  </div>
-                </div>
-              </div>
+                    {/* The Orb */}
+                    <div className="relative flex items-center justify-center">
+                        {/* Outer Glow Rings */}
+                        <div 
+                            className="absolute rounded-full bg-emerald-400 opacity-20 transition-all duration-150 ease-out"
+                            style={{ 
+                                width: `${100 + volume * 150}px`, 
+                                height: `${100 + volume * 150}px` 
+                            }}
+                        ></div>
+                        <div 
+                            className="absolute rounded-full bg-emerald-500 opacity-30 transition-all duration-200 ease-out"
+                            style={{ 
+                                width: `${80 + volume * 100}px`, 
+                                height: `${80 + volume * 100}px` 
+                            }}
+                        ></div>
+
+                        {/* Core Orb */}
+                        <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg flex items-center justify-center z-10 transition-transform duration-300 ${status === 'speaking' ? 'scale-110' : 'scale-100'}`}>
+                            {status === 'connecting' ? (
+                                <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            ) : isMuted ? (
+                                <svg className="w-8 h-8 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+                                </svg>
+                            ) : (
+                                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                </svg>
+                            )}
+                        </div>
+                    </div>
+                </>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
-          <form onSubmit={handleFormSubmit} className="p-4 bg-white border-t border-gray-100">
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={language === 'pt' ? "Escreva uma mensagem..." : language === 'es' ? "Escribe un mensaje..." : "Type a message..."}
-                className="w-full bg-gray-100 border-0 rounded-full px-5 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-800 placeholder-gray-500 transition-all"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="absolute right-2 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                </svg>
-              </button>
-            </div>
-          </form>
+          {/* Controls Footer */}
+          <div className="p-6 bg-white flex justify-center items-center gap-4">
+              {status === 'disconnected' && !error ? (
+                  <button 
+                    onClick={startSession}
+                    className="bg-emerald-600 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-emerald-700 transition-all transform hover:scale-105 flex items-center"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Start Conversation
+                  </button>
+              ) : error ? (
+                   <button 
+                    onClick={() => setIsOpen(false)}
+                    className="text-gray-500 hover:text-gray-800 font-medium text-sm"
+                  >
+                    Close
+                  </button>
+              ) : (
+                  <>
+                    <button 
+                        onClick={toggleMute}
+                        disabled={status === 'connecting'}
+                        className={`p-3 rounded-full transition-colors border ${isMuted ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                        title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
+                    >
+                         {isMuted ? (
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+                             </svg>
+                         ) : (
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                             </svg>
+                         )}
+                    </button>
+
+                    <button 
+                        onClick={disconnect}
+                        className="bg-red-50 text-red-600 border border-red-100 px-6 py-3 rounded-full font-semibold hover:bg-red-100 transition-colors flex items-center"
+                    >
+                        <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        End Call
+                    </button>
+                  </>
+              )}
+          </div>
         </div>
       )}
     </>

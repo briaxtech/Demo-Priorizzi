@@ -15,7 +15,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [language, setLanguage] = useState<Language>('pt');
 
   useEffect(() => {
-    const storedLang = localStorage.getItem('priorizzi_lang') as Language;
+    const storedLang = localStorage.getItem('manybriax_lang') as Language;
     if (storedLang && ['pt', 'en', 'es'].includes(storedLang)) {
       setLanguage(storedLang);
     }
@@ -23,7 +23,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
-    localStorage.setItem('priorizzi_lang', lang);
+    localStorage.setItem('manybriax_lang', lang);
   };
 
   return (

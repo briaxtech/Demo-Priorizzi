@@ -1,7 +1,7 @@
 export const translations = {
   pt: {
     nav: {
-      about: 'A Priorizzi',
+      about: 'A Many BrIAx',
       solutions: 'Soluções',
       courses: 'Cursos',
       clients: 'Clientes',
@@ -9,7 +9,7 @@ export const translations = {
       contact: 'Fale Conosco'
     },
     hero: {
-      subtitle: 'Priorizzi Gestão Financeira em Saúde',
+      subtitle: 'Many BrIAx Gestão Financeira em Saúde',
       tag: '+500 EMPRESAS DE SAÚDE JÁ MULTIPLICARAM SEUS LUCROS',
       title: 'Pare de perder dinheiro: descubra onde estão os vazamentos financeiros da sua empresa de saúde',
       description: 'Você cuida dos pacientes, nós garantimos que sua empresa seja lucrativa e sustentável. Resultados comprovados em 90 dias ou menos.',
@@ -29,9 +29,9 @@ export const translations = {
     testimonials: {
       title: 'O Que Nossos Clientes Dizem',
       subtitle: 'Histórias reais de empresas de saúde que transformaram suas finanças com a nossa ajuda.',
-      t1_quote: 'A Priorizzi transformou nossa gestão financeira. Em 6 meses, vimos um aumento de 40% na nossa lucratividade. Essencial para qualquer clínica que busca crescimento sustentável.',
+      t1_quote: 'A Many BrIAx transformou nossa gestão financeira. Em 6 meses, vimos um aumento de 40% na nossa lucratividade. Essencial para qualquer clínica que busca crescimento sustentável.',
       t1_role: 'Diretor, Clínica Coração Vital',
-      t2_quote: 'Tínhamos vazamentos financeiros que nem imaginávamos. O check-up gratuito da Priorizzi foi um divisor de águas. Hoje, temos total controle e previsibilidade sobre nossas finanças.',
+      t2_quote: 'Tínhamos vazamentos financeiros que nem imaginávamos. O check-up gratuito da Many BrIAx foi um divisor de águas. Hoje, temos total controle e previsibilidade sobre nossas finanças.',
       t2_role: 'Administradora, Hospital Bem Estar'
     },
     cta: {
@@ -46,7 +46,7 @@ export const translations = {
       rights: 'Todos os direitos reservados.'
     },
     agent: {
-      welcome_intro: 'Sou o Alex, consultor da Priorizzi.',
+      welcome_intro: 'Sou o Alex, consultor da Many BrIAx.',
       welcome_question: 'Como posso ajudar a multiplicar os lucros da sua clínica hoje?',
       suggestions: [
         "Como funciona o Check-up Gratuito?",
@@ -60,7 +60,7 @@ export const translations = {
   },
   en: {
     nav: {
-      about: 'About Priorizzi',
+      about: 'About Many BrIAx',
       solutions: 'Solutions',
       courses: 'Courses',
       clients: 'Clients',
@@ -68,7 +68,7 @@ export const translations = {
       contact: 'Contact Us'
     },
     hero: {
-      subtitle: 'Priorizzi Healthcare Financial Management',
+      subtitle: 'Many BrIAx Healthcare Financial Management',
       tag: '+500 HEALTHCARE COMPANIES HAVE ALREADY MULTIPLIED PROFITS',
       title: 'Stop losing money: discover where the financial leaks are in your healthcare business',
       description: 'You take care of patients, we ensure your business is profitable and sustainable. Proven results in 90 days or less.',
@@ -88,9 +88,9 @@ export const translations = {
     testimonials: {
       title: 'What Our Clients Say',
       subtitle: 'Real stories from healthcare companies that transformed their finances with our help.',
-      t1_quote: 'Priorizzi transformed our financial management. In 6 months, we saw a 40% increase in our profitability. Essential for any clinic seeking sustainable growth.',
+      t1_quote: 'Many BrIAx transformed our financial management. In 6 months, we saw a 40% increase in our profitability. Essential for any clinic seeking sustainable growth.',
       t1_role: 'Director, Vital Heart Clinic',
-      t2_quote: 'We had financial leaks we couldn\'t even imagine. Priorizzi\'s free check-up was a watershed moment. Today, we have total control and predictability over our finances.',
+      t2_quote: 'We had financial leaks we couldn\'t even imagine. Many BrIAx\'s free check-up was a watershed moment. Today, we have total control and predictability over our finances.',
       t2_role: 'Administrator, Well-Being Hospital'
     },
     cta: {
@@ -105,7 +105,7 @@ export const translations = {
       rights: 'All rights reserved.'
     },
     agent: {
-      welcome_intro: 'I\'m Alex, Priorizzi\'s consultant.',
+      welcome_intro: 'I\'m Alex, Many BrIAx\'s consultant.',
       welcome_question: 'How can I help multiply your clinic\'s profits today?',
       suggestions: [
         "How does the Free Check-up work?",
@@ -119,7 +119,7 @@ export const translations = {
   },
   es: {
     nav: {
-      about: 'Sobre Priorizzi',
+      about: 'Sobre Many BrIAx',
       solutions: 'Soluciones',
       courses: 'Cursos',
       clients: 'Clientes',
@@ -127,7 +127,7 @@ export const translations = {
       contact: 'Hable con Nosotros'
     },
     hero: {
-      subtitle: 'Priorizzi Gestión Financiera en Salud',
+      subtitle: 'Many BrIAx Gestión Financiera en Salud',
       tag: '+500 EMPRESAS DE SALUD YA MULTIPLICARON SUS GANANCIAS',
       title: 'Deja de perder dinero: descubre dónde están las fugas financieras de tu empresa de salud',
       description: 'Tú cuidas a los pacientes, nosotros garantizamos que tu empresa sea rentable y sostenible. Resultados comprobados en 90 días o menos.',
@@ -147,9 +147,9 @@ export const translations = {
     testimonials: {
       title: 'Lo Que Dicen Nuestros Clientes',
       subtitle: 'Historias reales de empresas de salud que transformaron sus finanzas con nuestra ayuda.',
-      t1_quote: 'Priorizzi transformó nuestra gestión financiera. En 6 meses, vimos un aumento del 40% en nuestra rentabilidad. Esencial para cualquier clínica que busca crecimiento sostenible.',
+      t1_quote: 'Many BrIAx transformó nuestra gestión financiera. En 6 meses, vimos un aumento del 40% en nuestra rentabilidad. Esencial para cualquier clínica que busca crecimiento sostenible.',
       t1_role: 'Director, Clínica Corazón Vital',
-      t2_quote: 'Teníamos fugas financieras que ni imaginábamos. El check-up gratuito de Priorizzi fue un punto de inflexión. Hoy, tenemos control total y previsibilidad sobre nuestras finanzas.',
+      t2_quote: 'Teníamos fugas financieras que ni imaginábamos. El check-up gratuito de Many BrIAx fue un punto de inflexión. Hoy, tenemos control total y previsibilidad sobre nuestras finanzas.',
       t2_role: 'Administradora, Hospital Bienestar'
     },
     cta: {
@@ -164,7 +164,7 @@ export const translations = {
       rights: 'Todos los derechos reservados.'
     },
     agent: {
-      welcome_intro: 'Soy Alex, consultor de Priorizzi.',
+      welcome_intro: 'Soy Alex, consultor de Many BrIAx.',
       welcome_question: '¿Cómo puedo ayudar a multiplicar las ganancias de tu clínica hoy?',
       suggestions: [
         "¿Cómo funciona el Check-up Gratuito?",

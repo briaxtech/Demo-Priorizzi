@@ -46,7 +46,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           <a href="#home" className="flex flex-col">
-            <h1 className="text-2xl font-bold text-emerald-700">PRIORIZZI®</h1>
+            <h1 className="text-2xl font-bold text-emerald-700">Many BrIAx</h1>
             <p className="text-xs text-gray-500 tracking-tight">A Saúde Financeira de Sua Empresa</p>
           </a>
 
