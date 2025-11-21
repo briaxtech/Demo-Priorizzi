@@ -1,7 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  font-family: 'Poppins', sans-serif;
-}
+/* 
+  This file is not currently used in the project.
+  Styling is handled by the Tailwind CSS CDN script in index.html.
+*/

@@ -1,37 +1,65 @@
 import React, { useState } from 'react';
-import Link from 'next/link';
-
-const NavLinks = () => (
-  <>
-    <Link href="/about" className="text-gray-600 hover:text-emerald-600 transition-colors">A Priorizzi</Link>
-    <Link href="/solutions" className="text-gray-600 hover:text-emerald-600 transition-colors">Soluções</Link>
-    <Link href="/courses" className="text-gray-600 hover:text-emerald-600 transition-colors">Cursos</Link>
-    <Link href="/clients" className="text-gray-600 hover:text-emerald-600 transition-colors">Clientes</Link>
-    <Link href="/blog" className="text-gray-600 hover:text-emerald-600 transition-colors">Blog</Link>
-    <Link href="/contact" className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-all">Fale Conosco</Link>
-  </>
-);
+import { useLanguage } from '../context/LanguageContext';
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
+
+  const NavLinks = () => (
+    <>
+      <a href="#home" onClick={() => setIsOpen(false)} className="text-gray-600 hover:text-emerald-600 transition-colors">{t.nav.about}</a>
+      <a href="#solutions" onClick={() => setIsOpen(false)} className="text-gray-600 hover:text-emerald-600 transition-colors">{t.nav.solutions}</a>
+      <a href="#contact" onClick={() => setIsOpen(false)} className="text-gray-600 hover:text-emerald-600 transition-colors">{t.nav.courses}</a>
+      <a href="#clients" onClick={() => setIsOpen(false)} className="text-gray-600 hover:text-emerald-600 transition-colors">{t.nav.clients}</a>
+      <a href="#contact" onClick={() => setIsOpen(false)} className="text-gray-600 hover:text-emerald-600 transition-colors">{t.nav.blog}</a>
+      <a href="#contact" onClick={() => setIsOpen(false)} className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-all">{t.nav.contact}</a>
+    </>
+  );
+
+  const LanguageSelector = () => (
+    <div className="flex items-center space-x-2 ml-4">
+      <button 
+        onClick={() => setLanguage('pt')} 
+        className={`text-sm font-medium transition-colors ${language === 'pt' ? 'text-emerald-600' : 'text-gray-400 hover:text-emerald-500'}`}
+      >
+        PT
+      </button>
+      <span className="text-gray-300">|</span>
+      <button 
+        onClick={() => setLanguage('en')} 
+        className={`text-sm font-medium transition-colors ${language === 'en' ? 'text-emerald-600' : 'text-gray-400 hover:text-emerald-500'}`}
+      >
+        EN
+      </button>
+      <span className="text-gray-300">|</span>
+      <button 
+        onClick={() => setLanguage('es')} 
+        className={`text-sm font-medium transition-colors ${language === 'es' ? 'text-emerald-600' : 'text-gray-400 hover:text-emerald-500'}`}
+      >
+        ES
+      </button>
+    </div>
+  );
 
   return (
     <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <Link href="/" className="flex flex-col">
+          <a href="#home" className="flex flex-col">
             <h1 className="text-2xl font-bold text-emerald-700">PRIORIZZI®</h1>
             <p className="text-xs text-gray-500 tracking-tight">A Saúde Financeira de Sua Empresa</p>
-          </Link>
+          </a>
 
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-6">
             <NavLinks />
+            <LanguageSelector />
           </nav>
           
-          <div className="lg:hidden">
+          <div className="lg:hidden flex items-center">
+            <LanguageSelector />
             <button 
               onClick={() => setIsOpen(!isOpen)} 
-              className="text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 rounded"
+              className="ml-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 rounded"
               aria-controls="mobile-menu"
               aria-expanded={isOpen}
             >
@@ -43,13 +71,14 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        {isOpen && (
-          <div className="lg:hidden mt-4" id="mobile-menu">
-            <nav className="flex flex-col items-center space-y-4">
-              <NavLinks />
-            </nav>
-          </div>
-        )}
+        <div 
+          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 mt-4' : 'max-h-0'}`}
+          id="mobile-menu"
+        >
+          <nav className="flex flex-col items-center space-y-4 py-4 border-t border-gray-100 mt-2">
+            <NavLinks />
+          </nav>
+        </div>
       </div>
     </header>
   );
