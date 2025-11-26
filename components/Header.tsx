@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   const NavLinks = () => (
     <>
@@ -14,31 +14,6 @@ const Header: React.FC = () => {
       <a href="#contact" onClick={() => setIsOpen(false)} className="text-gray-600 hover:text-emerald-600 transition-colors">{t.nav.blog}</a>
       <a href="#contact" onClick={() => setIsOpen(false)} className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-all">{t.nav.contact}</a>
     </>
-  );
-
-  const LanguageSelector = () => (
-    <div className="flex items-center space-x-2 ml-4">
-      <button 
-        onClick={() => setLanguage('pt')} 
-        className={`text-sm font-medium transition-colors ${language === 'pt' ? 'text-emerald-600' : 'text-gray-400 hover:text-emerald-500'}`}
-      >
-        PT
-      </button>
-      <span className="text-gray-300">|</span>
-      <button 
-        onClick={() => setLanguage('en')} 
-        className={`text-sm font-medium transition-colors ${language === 'en' ? 'text-emerald-600' : 'text-gray-400 hover:text-emerald-500'}`}
-      >
-        EN
-      </button>
-      <span className="text-gray-300">|</span>
-      <button 
-        onClick={() => setLanguage('es')} 
-        className={`text-sm font-medium transition-colors ${language === 'es' ? 'text-emerald-600' : 'text-gray-400 hover:text-emerald-500'}`}
-      >
-        ES
-      </button>
-    </div>
   );
 
   return (
@@ -52,11 +27,9 @@ const Header: React.FC = () => {
 
           <nav className="hidden lg:flex items-center space-x-6">
             <NavLinks />
-            <LanguageSelector />
           </nav>
           
           <div className="lg:hidden flex items-center">
-            <LanguageSelector />
             <button 
               onClick={() => setIsOpen(!isOpen)} 
               className="ml-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 rounded"

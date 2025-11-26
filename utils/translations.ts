@@ -1,63 +1,4 @@
 export const translations = {
-  pt: {
-    nav: {
-      about: 'A Many BrIAx',
-      solutions: 'Soluções',
-      courses: 'Cursos',
-      clients: 'Clientes',
-      blog: 'Blog',
-      contact: 'Fale Conosco'
-    },
-    hero: {
-      subtitle: 'Many BrIAx Gestão Financeira em Saúde',
-      tag: '+500 EMPRESAS DE SAÚDE JÁ MULTIPLICARAM SEUS LUCROS',
-      title: 'Pare de perder dinheiro: descubra onde estão os vazamentos financeiros da sua empresa de saúde',
-      description: 'Você cuida dos pacientes, nós garantimos que sua empresa seja lucrativa e sustentável. Resultados comprovados em 90 dias ou menos.',
-      cta_primary: 'Quero Multiplicar Meus Lucros Agora',
-      cta_secondary: 'Ver Como Funciona (2 min)'
-    },
-    features: {
-      title: '3 Formas Comprovadas de Dobrar Seu Lucro',
-      subtitle: 'Escolha o caminho ideal para transformar sua empresa de saúde em uma máquina de gerar resultados previsíveis',
-      card1_title: 'Check-up Financeiro Gratuito',
-      card1_desc: 'Em apenas 48 horas, revelamos exatamente onde você está perdendo dinheiro e entregamos um plano de ação para recuperar até 30% de margem. Zero compromisso, resultados reais.',
-      card2_title: 'Consultoria Estratégica Blindada',
-      card2_desc: 'Implantamos sistemas à prova de falhas que eliminam desperdícios e maximizam seu lucro. Nossos clientes aumentam em média 47% sua rentabilidade nos primeiros 6 meses.',
-      card3_title: 'CFO Terceirizado Saúde+',
-      card3_desc: 'Tenha um diretor financeiro de elite sem os custos de um executivo interno. Você foca em salvar vidas, nós garantimos que seu negócio seja altamente lucrativo e previsível.'
-    },
-    testimonials: {
-      title: 'O Que Nossos Clientes Dizem',
-      subtitle: 'Histórias reais de empresas de saúde que transformaram suas finanças com a nossa ajuda.',
-      t1_quote: 'A Many BrIAx transformou nossa gestão financeira. Em 6 meses, vimos um aumento de 40% na nossa lucratividade. Essencial para qualquer clínica que busca crescimento sustentável.',
-      t1_role: 'Diretor, Clínica Coração Vital',
-      t2_quote: 'Tínhamos vazamentos financeiros que nem imaginávamos. O check-up gratuito da Many BrIAx foi um divisor de águas. Hoje, temos total controle e previsibilidade sobre nossas finanças.',
-      t2_role: 'Administradora, Hospital Bem Estar'
-    },
-    cta: {
-      title: 'Pronto para Transformar Suas Finanças?',
-      description: 'Não deixe mais dinheiro na mesa. Agende seu check-up financeiro gratuito hoje mesmo e descubra o potencial de lucro escondido em sua empresa.',
-      button: 'Quero Multiplicar Meus Lucros Agora'
-    },
-    footer: {
-      description: 'Especialistas em gestão financeira para o setor da saúde, transformando números em decisões estratégicas que geram prosperidade.',
-      quick_links: 'Links Rápidos',
-      contact: 'Contato',
-      rights: 'Todos os direitos reservados.'
-    },
-    agent: {
-      welcome_intro: 'Sou o Alex, consultor da Many BrIAx.',
-      welcome_question: 'Como posso ajudar a multiplicar os lucros da sua clínica hoje?',
-      suggestions: [
-        "Como funciona o Check-up Gratuito?",
-        "Quero aumentar minha margem de lucro",
-        "Vocês atendem clínicas pequenas?"
-      ],
-      launcher_help: 'Posso ajudar?',
-      launcher_online: 'Online agora',
-      launcher_cta: 'Fale com Alex'
-    }
-  },
   en: {
     nav: {
       about: 'About Many BrIAx',
@@ -74,6 +15,9 @@ export const translations = {
       description: 'You take care of patients, we ensure your business is profitable and sustainable. Proven results in 90 days or less.',
       cta_primary: 'I Want to Multiply My Profits Now',
       cta_secondary: 'See How It Works (2 min)'
+    },
+    trusted: {
+      title: 'TRUSTED BY LEADING HEALTHCARE INSTITUTIONS'
     },
     features: {
       title: '3 Proven Ways to Double Your Profit',
@@ -105,8 +49,8 @@ export const translations = {
       rights: 'All rights reserved.'
     },
     agent: {
-      welcome_intro: 'I\'m Alex, Many BrIAx\'s consultant.',
-      welcome_question: 'How can I help multiply your clinic\'s profits today?',
+      welcome_intro: 'Hi, I\'m Alex.',
+      welcome_question: 'Ready to find out where your clinic is losing money? Chat with me.',
       suggestions: [
         "How does the Free Check-up work?",
         "I want to increase my profit margin",
@@ -114,7 +58,7 @@ export const translations = {
       ],
       launcher_help: 'Can I help?',
       launcher_online: 'Online now',
-      launcher_cta: 'Talk to Alex'
+      launcher_cta: 'Chat with Alex'
     }
   },
   es: {
@@ -133,6 +77,9 @@ export const translations = {
       description: 'Tú cuidas a los pacientes, nosotros garantizamos que tu empresa sea rentable y sostenible. Resultados comprobados en 90 días o menos.',
       cta_primary: 'Quiero Multiplicar Mis Ganancias Ahora',
       cta_secondary: 'Ver Cómo Funciona (2 min)'
+    },
+    trusted: {
+      title: 'INSTITUCIONES DE SALUD QUE CONFÍAN EN NOSOTROS'
     },
     features: {
       title: '3 Formas Comprobadas de Doblar Tu Lucro',
@@ -164,8 +111,8 @@ export const translations = {
       rights: 'Todos los derechos reservados.'
     },
     agent: {
-      welcome_intro: 'Soy Alex, consultor de Many BrIAx.',
-      welcome_question: '¿Cómo puedo ayudar a multiplicar las ganancias de tu clínica hoy?',
+      welcome_intro: 'Hola, soy Alex.',
+      welcome_question: '¿Listo para descubrir dónde está perdiendo dinero tu clínica? Chatea conmigo.',
       suggestions: [
         "¿Cómo funciona el Check-up Gratuito?",
         "Quiero aumentar mi margen de ganancia",
@@ -173,7 +120,7 @@ export const translations = {
       ],
       launcher_help: '¿Puedo ayudar?',
       launcher_online: 'En línea ahora',
-      launcher_cta: 'Hablar con Alex'
+      launcher_cta: 'Chatear con Alex'
     }
   }
 };

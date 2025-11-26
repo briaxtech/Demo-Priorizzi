@@ -6,6 +6,7 @@ import Testimonials from './components/Testimonials';
 import CTA from './components/CTA';
 import Footer from './components/Footer';
 import GeminiAgent from './components/GeminiAgent';
+import LogoCarousel from './components/LogoCarousel';
 import { LanguageProvider } from './context/LanguageContext';
 
 const App: React.FC = () => {
@@ -15,6 +16,7 @@ const App: React.FC = () => {
         <Header />
         <main>
           <Hero />
+          <LogoCarousel />
           <Features />
           <Testimonials />
           <CTA />

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="es">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,14 +29,37 @@
       .chat-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #059669;
       }
+
+      /* Infinite Scroll Animation */
+      @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      .animate-scroll {
+        animation: scroll 30s linear infinite;
+      }
+      .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
     <script>
-      // Shim for process.env to avoid crashes in libraries expecting Node environment
-      window.process = {
-        env: {
-          NODE_ENV: 'development'
-        }
-      };
+      // Safe Shim for process.env to avoid crashes in libraries expecting Node environment
+      // We check if it exists first to avoid overwriting injected keys (like API_KEY)
+      window.process = window.process || {};
+      window.process.env = window.process.env || {};
+      if (!window.process.env.NODE_ENV) {
+        window.process.env.NODE_ENV = 'development';
+      }
     </script>
 <script type="importmap">
 {

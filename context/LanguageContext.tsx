@@ -1,29 +1,46 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { translations } from '../utils/translations';
 
-type Language = 'pt' | 'en' | 'es';
+type Language = 'es' | 'en';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: typeof translations['pt'];
+  t: typeof translations['es'];
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('pt');
+  // Inicializamos en español por defecto, pero el useEffect lo actualizará inmediatamente
+  const [language, setLanguage] = useState<Language>('es');
 
   useEffect(() => {
+    // 1. Verificar si hay una preferencia guardada previamente
     const storedLang = localStorage.getItem('manybriax_lang') as Language;
-    if (storedLang && ['pt', 'en', 'es'].includes(storedLang)) {
+    
+    if (storedLang && ['es', 'en'].includes(storedLang)) {
       setLanguage(storedLang);
+      document.documentElement.lang = storedLang;
+    } else {
+      // 2. Si no hay preferencia guardada, detectar el idioma del navegador
+      const browserLang = navigator.language || (navigator.languages && navigator.languages[0]);
+      
+      if (browserLang && browserLang.toLowerCase().startsWith('en')) {
+        setLanguage('en');
+        document.documentElement.lang = 'en';
+      } else {
+        // Por defecto Español para 'es' y cualquier otro idioma no soportado
+        setLanguage('es');
+        document.documentElement.lang = 'es';
+      }
     }
   }, []);
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem('manybriax_lang', lang);
+    document.documentElement.lang = lang;
   };
 
   return (
